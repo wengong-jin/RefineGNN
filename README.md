@@ -48,5 +48,5 @@ You can inspect predicted CDR structure by running the following script
 ```
 python print_cdr.py --data_path data/sabdab/hcdr3_cluster/test_data.jsonl --load_model ckpts/RefineGNN-hcdr3/model.best --rmsd_threshold 0.8 --save_dir pred_pdbs/
 ```
-This script will print predicted CDR structures in the `pred_pdbs/` folder. You can visualize the generated CDR loops (i.e. 4bkl.pdb) in PyMOL. 
+This script will print predicted CDR structures in `pred_pdbs/*.pdb` if their RMSD is below 0.8. You can visualize the generated CDR loops (i.e. 4bkl.pdb) in PyMOL. 
 Overall, there are still many failure cases and the structure prediction part needs to be improved.
