@@ -1,2 +1,4 @@
 *.pyc
 *LOG*
+pred_pdb/
+data/
