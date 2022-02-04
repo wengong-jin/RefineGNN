@@ -2,8 +2,6 @@
 
 This is the implementation of our ICLR 2022 paper: https://arxiv.org/pdf/2110.04624.pdf
 
-Warning: this repo is still under construction...
-
 ## Dependencies
 Our model is tested in Linux with the following packages:
 * CUDA >= 11.1
