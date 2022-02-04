@@ -44,7 +44,7 @@ python rabd_test.py --load_model ckpts/RefineGNN-rabd/model.best
 ```
 
 ## CDR Structure Visualization
-You can inspect predicted CDR structure by running the following script
+You can inspect the predicted CDR structure by running the following script
 ```
 python print_cdr.py --data_path data/sabdab/hcdr3_cluster/test_data.jsonl --load_model ckpts/RefineGNN-hcdr3/model.best --rmsd_threshold 0.8 --save_dir pred_pdbs/
 ```
