@@ -31,6 +31,7 @@ python baseline_train.py --cdr_type 3 --train_path data/sabdab/hcdr3_cluster/tra
 ```
 The above training script usually consumes 4GB GPU memory. You can also train our AR-GNN baseline by setting `--architecture AR-GNN`. 
 
+
 ## Antigen-binding antibody design (Section 4.2)
 To train a RefineGNN for this task, please run
 ```
