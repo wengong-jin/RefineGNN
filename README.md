@@ -48,8 +48,7 @@ python fold_train.py --cdr 123
 ```
 `--cdr 123` means the model will predict CDR-H1, CDR-H2, and CDR-H3 combined. You can change it to `--cdr 3` if you want to predict CDR-H3 structure only.
 
-For convenience, we have provided a pre-trained checkpoint in `ckpts/RefineGNN-hfold` which predicts the combined structure of CDR-H1, CDR-H2, and CDR-H3.
-You can print the predicted CDR structures using the following script:
+For convenience, we have provided a pre-trained checkpoint for CDR-H1,2,3 joint structure prediction. You can print the predicted CDR structures using the following script:
 ```
 python print_cdr.py --load_model ckpts/RefineGNN-hfold/model.best --save_dir pred_pdbs
 ```
