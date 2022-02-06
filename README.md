@@ -41,10 +41,16 @@ At test time, we generate 10000 CDR-H3 sequences for each antibody and select th
 python rabd_test.py --load_model ckpts/RefineGNN-rabd/model.best
 ```
 
-## CDR Structure Visualization
-You can inspect the predicted CDR structure by running the following script
+## CDR Structure Prediction
+Besides CDR sequence design, we can also use RefineGNN to predict CDR loop structure given an antibody VH sequence. To train a RefineGNN for structure prediction alone, please run
 ```
-python print_cdr.py --data_path data/sabdab/hcdr3_cluster/test_data.jsonl --load_model ckpts/RefineGNN-hcdr3/model.best --rmsd_threshold 0.8 --save_dir pred_pdbs/
+python fold_train.py --cdr 123
 ```
-This script will print predicted CDR structures in `pred_pdbs/*.pdb` if their RMSD is below 0.8. You can visualize the generated CDR loops (i.e. 4bkl.pdb) in PyMOL. 
-Overall, there are still many failure cases and the structure prediction part needs to be improved.
+`--cdr 123` means the model will predict CDR-H1, CDR-H2, and CDR-H3 combined. You can change it to `--cdr 3` if you want to predict CDR-H3 structure only.
+
+For convenience, we have provided a pre-trained checkpoint in `ckpts/RefineGNN-hfold` which predicts the combined structure of CDR-H1, CDR-H2, and CDR-H3.
+You can print the predicted CDR structures using the following script:
+```
+python print_cdr.py --load_model ckpts/RefineGNN-hfold/model.best --save_dir pred_pdbs
+```
+The predicted structures are saved in `pred_pdbs/*.pdb`. Each pdb file has a header line that reports the RMSD score. You can visualize them in PyMOL.
