@@ -2,3 +2,6 @@
 *LOG*
 pred_pdb/
 data/
+ckpts/
+*.gz
+*.jsonl

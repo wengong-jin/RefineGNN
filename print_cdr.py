@@ -11,8 +11,7 @@ import numpy as np
 import argparse
 import os
 
-from structgen import *
-from structgen.utils import kabsch
+from fold_train import *
 from tqdm import tqdm
 
 restype_1to3 = {
@@ -39,59 +38,57 @@ restype_1to3 = {
 }
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--data_path', default='data/sabdab/hcdr3_cluster/test_data.jsonl')
+parser.add_argument('--data_path', default='data/sabdab_2022_01/test_data.jsonl')
 parser.add_argument('--save_dir', default='pred_pdb/')
 parser.add_argument('--load_model', required=True)
 parser.add_argument('--seed', type=int, default=7)
-parser.add_argument('--rmsd_threshold', type=float, default=0.8)
 args = parser.parse_args()
 
 os.makedirs(args.save_dir, exist_ok=True)
+
+model_ckpt, opt_ckpt, model_args = torch.load(args.load_model)
+model = RefineFolder(model_args).cuda()
+model.load_state_dict(model_ckpt)
+model.eval()
 
 torch.manual_seed(args.seed)
 np.random.seed(args.seed)
 random.seed(args.seed)
 
-model_ckpt, opt_ckpt, model_args = torch.load(args.load_model)
-model = HierarchicalDecoder(model_args).cuda()
-model.load_state_dict(model_ckpt)
-model.eval()
-
-args.batch_tokens = model_args.batch_tokens
-args.cdr_type = model_args.cdr_type
-
-data = AntibodyDataset(args.data_path, cdr_type=args.cdr_type)
-loader = StructureLoader(data.data, batch_tokens=args.batch_tokens, interval_sort=int(args.cdr_type))
+data = AntibodyComplexDataset(
+        args.data_path,
+        cdr_type=model_args.cdr,
+        L_binder=model_args.L_binder,
+        L_target=model_args.L_target,
+        language_model=False
+)
+loader = ComplexLoader(data, batch_tokens=0)
 
 niceprint = np.vectorize(lambda x : "%.3f" % (x,))
 
-print("List of PDB IDs with predicted RMSD <", args.rmsd_threshold)
 with torch.no_grad():
-    for hbatch in tqdm(loader):
-        hX, hS, hL, hmask = completize(hbatch)
-        for i in range(len(hbatch)):
-            pdb = hbatch[i]['pdb']
-            L = hmask[i:i+1].sum().long().item()
-            if L <= 3: continue
+    for data in tqdm(loader):
+        binder, scaffold, target, surface = make_batch(data)[:4]
+        binder_surface = surface[0][0].tolist()
+        out = model(binder, scaffold, surface)
 
-            l, r = hL[i].index(args.cdr_type), hL[i].rindex(args.cdr_type)
-            N = r - l + 1
-            out = model.log_prob(hS[i:i+1, :L], [hL[i]], hmask[i:i+1, :L])
-            X = out.X_cdr
-            rmsd = compute_rmsd(X[:, :, 1, :], hX[i:i+1, l:r+1, 1, :], hmask[i:i+1, l:r+1])  # alpha carbon
+        bind_X, _, bind_A = binder
+        bind_mask = bind_A.clamp(max=1).float()
 
-            if rmsd.item() < args.rmsd_threshold:
-                _, R, t = kabsch(X[:, :, 1], hX[i:i+1, l:r+1, 1])
-                X = X.view(1, N * 4, 3)
-                X = torch.bmm(R, X.transpose(1,2)).transpose(1,2) + t
-                X = X.view(1, N, 4, 3)
-                X = X.cpu().numpy()
-                print(pdb, f'RMSD={rmsd.item():.4f}')
+        bb_rmsd = compute_rmsd(
+                out.bind_X[:, :, 1], bind_X[:, :, 1], bind_mask[:, :, 1]
+        ).item()
 
-                path = os.path.join(args.save_dir, f'{pdb}.pdb')
-                with open(path, 'w') as f:
-                    for j in range(N):
-                        aaname = hbatch[i]['seq'][l + j]
-                        aaname = restype_1to3[aaname]
-                        print(f'ATOM    {j + 105}  CA  {aaname} H {j + 105}     ' + ' '.join(niceprint(X[0, j, 1, :])) + '  1.00  4.89           C', file=f)
+        pdb = data[0]['pdb']
+        X = out.bind_X + 200
+        X = X.cpu().numpy()
+
+        path = os.path.join(args.save_dir, f'{pdb}.pdb')
+        with open(path, 'w') as f:
+            print(f'REMARK  RMSD={bb_rmsd:.4f}', file=f)
+            for i in range(bind_X.size(1)):
+                idx = binder_surface[i]
+                aaname = data[0]['antibody_seq'][idx]
+                aaname = restype_1to3[aaname]
+                print(f'ATOM    924  CA  {aaname} H ' + str(binder_surface[i]) + '     ' + ' '.join(niceprint(X[0, i, 1, :])) + '  1.00  4.89           C', file=f)
 

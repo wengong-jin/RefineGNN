@@ -100,6 +100,14 @@ def pairwise_distance(X, mask):
     D = mask_2D * torch.sqrt(torch.sum(dX**2, dim=3))
     return D, mask_2D
 
+def self_square_dist(X, mask):
+    X = X[:, :, 1] 
+    dX = X.unsqueeze(1) - X.unsqueeze(2)  # [B, 1, N, 3] - [B, N, 1, 3]
+    D = torch.sum(dX**2, dim=-1)
+    mask_2D = mask.unsqueeze(1) * mask.unsqueeze(2)  # [B, 1, N] x [B, N, 1]
+    mask_2D = mask_2D - torch.eye(mask.size(1))[None,:,:].cuda()
+    return D, mask_2D
+
 def get_nei_label(X, mask, K):
     D, mask_2D = pairwise_distance(X, mask)
     nmask = torch.arange(X.size(1)).cuda()
