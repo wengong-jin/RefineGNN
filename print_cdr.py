@@ -90,5 +90,5 @@ with torch.no_grad():
                 idx = binder_surface[i]
                 aaname = data[0]['antibody_seq'][idx]
                 aaname = restype_1to3[aaname]
-                print(f'ATOM    924  CA  {aaname} H ' + str(binder_surface[i]) + '     ' + ' '.join(niceprint(X[0, i, 1, :])) + '  1.00  4.89           C', file=f)
+                print(f'ATOM    924  CA  {aaname} H ' + str(binder_surface[i]) + '     ' + ' '.join(niceprint(X[0, i, 1, :])), file=f)
 
