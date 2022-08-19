@@ -54,3 +54,9 @@ For convenience, we have provided a pre-trained checkpoint for CDR-H1,2,3 joint 
 python print_cdr.py --load_model ckpts/RefineGNN-hfold/model.best --save_dir pred_pdbs
 ```
 The predicted structures are saved in `pred_pdbs/*.pdb`. Each pdb file has a header line that reports the RMSD score. You can visualize them in PyMOL.
+
+## Covid Neutralization optimization (Section 4.3)
+For this experiment, please also install SRU from here: https://github.com/asappresearch/sru/tree/3.0.0-dev. SRU is used in the covid neutralization predictor. After installation, please run
+```
+python covid_optimize.py
+```
