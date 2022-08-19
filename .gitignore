@@ -5,3 +5,4 @@ data/
 ckpts/
 *.gz
 *.jsonl
+sru*/
